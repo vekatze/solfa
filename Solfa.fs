@@ -96,7 +96,6 @@ let getInput basenameOrNone noteOrNone =
       printf "note: %d\n" note
       None
     | "p", Some basename, _ ->
-      // let _ = playAt stringIndex (fretOf stringIndex note)
       let _ = play basename
       None
     | "exit", _, _ ->
