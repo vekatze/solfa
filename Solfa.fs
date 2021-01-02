@@ -46,10 +46,6 @@ let parseInt (str : string) =
   | _, _ ->
     None
 
-let takeRandomNote _ =
-  let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length - 1)
-  standardScale.[questionNoteIndex]
-
 let baseNoteOf stringIndex =
   match stringIndex with
   | 0 ->
@@ -67,8 +63,7 @@ let baseNoteOf stringIndex =
   | _ ->
     failwith "baseNoteOf"
 
-let play stringIndex fretIndex =
-  let basename = string (baseNoteOf stringIndex + fretIndex)
+let play basename =
   let p = new System.Diagnostics.Process ()
   match Environment.OSVersion.Platform with
   | PlatformID.Unix ->
@@ -81,7 +76,14 @@ let play stringIndex fretIndex =
   let _ = p.Start ()
   p
 
-let getInput stringIndexOrNone noteOrNone =
+let basenameAt stringIndex fretIndex =
+  string (baseNoteOf stringIndex + fretIndex)
+
+let playAt stringIndex fretIndex =
+  let basename = string (baseNoteOf stringIndex + fretIndex)
+  play basename
+
+let getInput basenameOrNone noteOrNone =
   let rawInputStr = Console.ReadLine ()
   if String.IsNullOrEmpty rawInputStr
   then
@@ -89,12 +91,13 @@ let getInput stringIndexOrNone noteOrNone =
     None
   else
     let inputStr = rawInputStr.Trim ()
-    match inputStr, stringIndexOrNone, noteOrNone with
+    match inputStr, basenameOrNone, noteOrNone with
     | "show", _, Some note ->
       printf "note: %d\n" note
       None
-    | "p", Some stringIndex, Some note ->
-      let _ = play stringIndex (fretOf stringIndex note)
+    | "p", Some basename, _ ->
+      // let _ = playAt stringIndex (fretOf stringIndex note)
+      let _ = play basename
       None
     | "exit", _, _ ->
       exitWith 0
@@ -262,11 +265,12 @@ module NoteToFret =
     printFooter
 
   let challenge questionStringIndex questionNote count =
-    let p = play questionStringIndex (fretOf questionStringIndex questionNote)
+    let basename = basenameAt questionStringIndex (fretOf questionStringIndex questionNote)
+    let p = play basename
     let t1 = DateTime.Now
     let rec f _ =
       printf "(%d/%d) > " (iteration - count + 1) iteration
-      match getInput (Some questionStringIndex) (Some questionNote) with
+      match getInput (Some basename) (Some questionNote) with
       | Some input when questionNote = noteAt questionStringIndex input ->
         let t2 = DateTime.Now
         p.WaitForExit ()
@@ -282,19 +286,30 @@ module NoteToFret =
         acc
       else
         let questionStringIndex = (new System.Random()).Next(1, 5)
-        let questionNote = takeRandomNote ()
+        let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length - 1)
+        let questionNote = standardScale.[questionNoteIndex]
         printRows questionStringIndex questionNote
         helper (challenge questionStringIndex questionNote i :: acc) (i - 1)
     helper [] i
 
 module Pitch =
+
+  let rec takeRandomNote _ =
+    let questionFilename = (new System.Random()).Next(9, 38)
+    if List.contains (rem (questionFilename + 3) 12) standardScale
+    then
+      questionFilename + 3
+    else
+      takeRandomNote ()
+
   let challenge questionNote count =
-    let p = play 1 questionNote
+    let basename = (string (questionNote - 3))
+    let p = play basename
     let t1 = DateTime.Now
     let rec f _ =
       printf "(%d/%d) > " (iteration - count + 1) iteration
-      match getInput (Some 1) (Some questionNote) with // これだと音高で判定できてしまいそう
-      | Some input when questionNote = input ->
+      match getInput (Some basename) None with
+      | Some input when rem questionNote 12 = input ->
         let t2 = DateTime.Now
         p.WaitForExit ()
         (t2 - t1).TotalSeconds
