@@ -2,7 +2,7 @@ open System
 open System.IO
 
 let iteration =
-  3
+  100
 
 let standardScale =
   [0; 2; 4; 5; 7; 9; 11]
@@ -337,7 +337,7 @@ module Pitch =
         helper (challenge questionNote i :: acc) (i - 1)
     helper [] i
 
-module Stave =
+module Staff =
 
   let rec takeRandomNote _ =
     let questionNote = (new System.Random()).Next(9, 36)
@@ -432,8 +432,8 @@ let main args =
         Some Interval.lesson
       | "pitch" ->
         Some Pitch.lesson
-      | "stave" ->
-        Some Stave.lesson
+      | "staff" ->
+        Some Staff.lesson
       | _ ->
         None
     match lessonOrNone with
