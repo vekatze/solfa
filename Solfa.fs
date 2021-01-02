@@ -46,6 +46,10 @@ let parseInt (str : string) =
   | _, _ ->
     None
 
+let takeRandomNote _ =
+  let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length - 1)
+  standardScale.[questionNoteIndex]
+
 let baseNoteOf stringIndex =
   match stringIndex with
   | 0 ->
@@ -153,7 +157,7 @@ module Interval =
         f ()
     f ()
 
-  let run i =
+  let lesson i =
     let rec helper acc i =
       if i <= 0
       then
@@ -215,7 +219,7 @@ module FretToNote =
         f ()
     f ()
 
-  let run i =
+  let lesson i =
     let rec helper acc i =
       if i <= 0
       then
@@ -261,7 +265,7 @@ module NoteToFret =
     let p = play questionStringIndex (fretOf questionStringIndex questionNote)
     let t1 = DateTime.Now
     let rec f _ =
-      printf "> "
+      printf "(%d/%d) > " (iteration - count + 1) iteration
       match getInput (Some questionStringIndex) (Some questionNote) with
       | Some input when questionNote = noteAt questionStringIndex input ->
         let t2 = DateTime.Now
@@ -271,17 +275,41 @@ module NoteToFret =
         f ()
     f ()
 
-  let run i =
+  let lesson i =
     let rec helper acc i =
       if i <= 0
       then
         acc
       else
         let questionStringIndex = (new System.Random()).Next(1, 5)
-        let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length - 1)
-        let questionNote = standardScale.[questionNoteIndex]
+        let questionNote = takeRandomNote ()
         printRows questionStringIndex questionNote
         helper (challenge questionStringIndex questionNote i :: acc) (i - 1)
+    helper [] i
+
+module Pitch =
+  let challenge questionNote count =
+    let p = play 1 questionNote
+    let t1 = DateTime.Now
+    let rec f _ =
+      printf "(%d/%d) > " (iteration - count + 1) iteration
+      match getInput (Some 1) (Some questionNote) with // これだと音高で判定できてしまいそう
+      | Some input when questionNote = input ->
+        let t2 = DateTime.Now
+        p.WaitForExit ()
+        (t2 - t1).TotalSeconds
+      | _ ->
+        f ()
+    f ()
+
+  let lesson i =
+    let rec helper acc i =
+      if i <= 0
+      then
+        acc
+      else
+        let questionNote = takeRandomNote ()
+        helper (challenge questionNote i :: acc) (i - 1)
     helper [] i
 
 [<EntryPoint>]
@@ -289,12 +317,16 @@ let main args =
   for i = 0 to args.Length - 1 do
     let lessonOrNone =
       match args.[i] with
-      | "interval" ->
-        Some Interval.run
       | "fret-to-note" ->
-        Some FretToNote.run
+        Some FretToNote.lesson
       | "note-to-fret" ->
-        Some NoteToFret.run
+        Some NoteToFret.lesson
+      | "interval" ->
+        Some Interval.lesson
+      | "pitch" ->
+        Some Pitch.lesson
+      | "staff" ->
+        None
       | _ ->
         None
     match lessonOrNone with
