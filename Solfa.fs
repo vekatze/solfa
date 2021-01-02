@@ -58,21 +58,7 @@ let parseInt (str : string) =
     None
 
 let baseNoteOf stringIndex =
-  match stringIndex with
-  | 0 ->
-    26
-  | 1 ->
-    21
-  | 2 ->
-    16
-  | 3 ->
-    11
-  | 4 ->
-    6
-  | 5 ->
-    1
-  | _ ->
-    failwith "baseNoteOf"
+  [26; 21; 16; 11; 6; 1].[stringIndex]
 
 let play basename =
   let p = new System.Diagnostics.Process ()
