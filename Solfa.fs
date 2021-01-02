@@ -25,6 +25,34 @@ let rem x m =
   else
     tmp + m
 
+let findIndex (a : 'a) (xs : List<'a>) =
+  let rec helper (a : 'a) (xs : List<'a>) i =
+    match xs with
+    | [] ->
+      None
+    | y :: ys when a = y ->
+      Some i
+    | _ :: ys ->
+      helper a ys (i + 1)
+  helper a xs 0
+    // if i >= xs.Length
+    // then
+    //   None
+    // else
+
+  // let valueOrNone =
+  //   for i = 0 to xs.Length - 1 do
+  //     if xs.[i] = a
+  //     then
+  //       Some a
+  //     else
+  //       None
+  // admit
+  // match xs with
+  // | [] ->
+  //   None
+  // | y :: ys when
+
 let noteAt stringIndex fretIndex =
   rem (5 + 7 * stringIndex + fretIndex) 12
 
@@ -326,6 +354,89 @@ module Pitch =
         helper (challenge questionNote i :: acc) (i - 1)
     helper [] i
 
+module Staff =
+
+  let rec takeRandomNote _ =
+    let questionNote = (new System.Random()).Next(9, 36)
+    if List.contains (rem questionNote 12) standardScale
+    then
+      questionNote
+    else
+      takeRandomNote ()
+
+  let noteToRow note =
+    //              A       C                   A       C                   A       C
+    let noteList = [9; 11; 12; 14; 16; 17; 19; 21; 23; 24; 26; 28; 29; 31; 33; 35; 36]
+    match findIndex note noteList with
+    | None ->
+      failwith "(unreachable)"
+    | Some rowIndex ->
+      rowIndex
+
+  let printEvenRow rowIndex questionRowIndex =
+    if rowIndex <= 3 || 13 <= rowIndex
+    then
+      printf "    "
+    else
+      printf "----"
+    if rowIndex = questionRowIndex
+    then
+      printf "-*-"
+    else
+      printf "---"
+    if rowIndex <= 3 || 13 <= rowIndex
+    then
+      printf "\n"
+    else
+      printf "----\n"
+
+  let printOddRow rowIndex questionRowIndex =
+    if rowIndex = questionRowIndex
+    then
+      printf "     *\n"
+    else
+      printf "\n"
+
+  let printRow rowIndex questionRowIndex =
+    if rowIndex % 2 = 0
+    then
+      printEvenRow rowIndex questionRowIndex
+    else
+      printOddRow rowIndex questionRowIndex
+
+  let printRows questionRowIndex =
+    printf "\n"
+    for rowIndex = 16 downto 0 do
+      printRow rowIndex questionRowIndex
+    printf "\n"
+
+  let challenge questionNote count =
+    let basename = string (questionNote - 3)
+    let p = play basename
+    let t1 = DateTime.Now
+    printRows (noteToRow questionNote)
+    let rec f _ =
+      printf "(%d/%d) > " (iteration - count + 1) iteration
+      match getInput (Some basename) None with
+      | Some input when rem questionNote 12 = input ->
+        let t2 = DateTime.Now
+        p.WaitForExit ()
+        (t2 - t1).TotalSeconds
+      | _ ->
+        f ()
+    f ()
+
+  let lesson i =
+    let rec helper acc i =
+      if i <= 0
+      then
+        acc
+      else
+        let questionNote = takeRandomNote ()
+        helper (challenge questionNote i :: acc) (i - 1)
+    helper [] i
+
+
 [<EntryPoint>]
 let main args =
   for i = 0 to args.Length - 1 do
@@ -340,7 +451,7 @@ let main args =
       | "pitch" ->
         Some Pitch.lesson
       | "staff" ->
-        None
+        Some Staff.lesson
       | _ ->
         None
     match lessonOrNone with
