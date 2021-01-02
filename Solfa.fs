@@ -396,7 +396,6 @@ module Staff =
 
   let challenge questionNote count =
     let basename = string (questionNote - 3)
-    let p = play basename
     let t1 = DateTime.Now
     printRows (noteToRow questionNote)
     let rec f _ =
@@ -404,7 +403,6 @@ module Staff =
       match getInput (Some basename) None with
       | Some input when rem questionNote 12 = input ->
         let t2 = DateTime.Now
-        p.WaitForExit ()
         (t2 - t1).TotalSeconds
       | _ ->
         f ()
