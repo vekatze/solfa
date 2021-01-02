@@ -2,13 +2,13 @@ open System
 open System.IO
 
 let iterateCount =
-  100
+  3
 
 let standardScale =
   [0; 2; 4; 5; 7; 9; 11]
 
 let admit<'a> =
-  failwith<'a> "admit"
+  failwith "admit"
 
 let doWhen bool f =
   if bool
@@ -33,7 +33,7 @@ let fretOf stringIndex note =
 
 let exitWith<'a> i =
   let _ = Environment.Exit i
-  admit<'a> // unreachable
+  admit // unreachable
 
 let quitWith<'T> str =
   printf str
@@ -114,7 +114,7 @@ let save name (values : List<float>) =
     let value = (sum values) / (float values.Length)
     let dirPath = sprintf "./result/%s/" name
     let _ = System.IO.Directory.CreateDirectory dirPath
-    let dateStr = string (DateTimeOffset(DateTime.Now).ToUnixTimeSeconds ())
+    let dateStr = DateTime.Now.ToString("yyyy-MM-dd-HHmmss")
     let path = dirPath + dateStr
     File.WriteAllLines(path, [string value])
 
