@@ -302,7 +302,7 @@ module NoteToFret =
         helper (challenge questionStringIndex questionNote i :: acc) (i - 1)
     helper [] i
 
-module Pitch =
+module Chroma =
 
   let rec takeRandomNote _ =
     let questionFilename = (new System.Random()).Next(9, 38)
@@ -430,8 +430,8 @@ let main args =
         Some NoteToFret.lesson
       | "interval" ->
         Some Interval.lesson
-      | "pitch" ->
-        Some Pitch.lesson
+      | "chroma" ->
+        Some Chroma.lesson
       | "staff" ->
         Some Staff.lesson
       | _ ->
