@@ -1,14 +1,14 @@
 open System
 open System.IO
 
-let iterateCount =
+let iteration =
   3
 
 let standardScale =
   [0; 2; 4; 5; 7; 9; 11]
 
 let admit<'a> =
-  failwith "admit"
+  failwith<'a> "admit"
 
 let doWhen bool f =
   if bool
@@ -144,7 +144,7 @@ module Interval =
   let rec challenge stringIndex offset count =
     let t1 = DateTime.Now
     let rec f _ =
-      printf "(%d/%d) > " (iterateCount - count + 1) iterateCount
+      printf "(%d/%d) > " (iteration - count + 1) iteration
       match getInput None None with
       | Some input when input = intervalAt stringIndex offset ->
         let t2 = DateTime.Now
@@ -206,7 +206,7 @@ module Fretboard =
   let challenge questionStringIndex questionFretIndex count =
     let t1 = DateTime.Now
     let rec f _ =
-      printf "(%d/%d) > " (iterateCount - count + 1) iterateCount
+      printf "(%d/%d) > " (iteration - count + 1) iteration
       match getInput None None with
       | Some input when input = noteAt questionStringIndex questionFretIndex ->
         let t2 = DateTime.Now
@@ -284,10 +284,22 @@ module Inverse =
         helper (challenge questionStringIndex questionNote i :: acc) (i - 1)
     helper [] i
 
-let lesson name tester =
-  let result = tester iterateCount
-  save name result
-
-lesson "interval" Interval.run
-lesson "fretboard" Fretboard.run
-lesson "inverse" Inverse.run
+[<EntryPoint>]
+let main args =
+  for i = 0 to args.Length - 1 do
+    let lessonOrNone =
+      match args.[i] with
+      | "interval" ->
+        Some Interval.run
+      | "fretboard" ->
+        Some Fretboard.run
+      | "inverse" ->
+        Some Inverse.run
+      | _ ->
+        None
+    match lessonOrNone with
+    | Some lesson ->
+      save args.[i] (lesson iteration)
+    | None ->
+      ()
+  0
