@@ -165,7 +165,7 @@ module Interval =
         helper (challenge stringIndex offset i :: acc) (i - 1)
     helper [] i
 
-module Fretboard =
+module FretToNote =
 
   let rec selectPoint _ =
     let questionStringIndex = (new System.Random()).Next(0, 5)
@@ -226,10 +226,10 @@ module Fretboard =
         helper (challenge questionStringIndex questionFretIndex i :: acc) (i - 1)
     helper [] i
 
-module Inverse =
+module NoteToFret =
 
   let printFooter _ =
-    Fretboard.printFooter ()
+    FretToNote.printFooter ()
 
   let printRow questionStringIndex stringIndex =
     if questionStringIndex = stringIndex
@@ -291,10 +291,10 @@ let main args =
       match args.[i] with
       | "interval" ->
         Some Interval.run
-      | "fretboard" ->
-        Some Fretboard.run
-      | "inverse" ->
-        Some Inverse.run
+      | "fret-to-note" ->
+        Some FretToNote.run
+      | "note-to-fret" ->
+        Some NoteToFret.run
       | _ ->
         None
     match lessonOrNone with
