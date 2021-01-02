@@ -65,11 +65,15 @@ let baseNoteOf stringIndex =
 
 let play stringIndex fretIndex =
   let basename = string (baseNoteOf stringIndex + fretIndex)
-  let arg = sprintf "./sine/%s.wav" basename
   let p = new System.Diagnostics.Process ()
-  p.StartInfo.FileName <- "paplay"
-  p.StartInfo.Arguments <- arg
-  p.StartInfo.RedirectStandardError <- true
+  match Environment.OSVersion.Platform with
+  | PlatformID.Unix ->
+      let arg = sprintf "./sine/%s.wav" basename
+      p.StartInfo.FileName <- "paplay"
+      p.StartInfo.Arguments <- arg
+      p.StartInfo.RedirectStandardError <- true
+  | _ ->
+      ()
   let _ = p.Start ()
   p
 
