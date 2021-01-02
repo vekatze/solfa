@@ -381,9 +381,9 @@ module Staff =
       printf "----"
     if rowIndex = questionRowIndex
     then
-      printf "-*-"
+      printf "- * -"
     else
-      printf "---"
+      printf "-----"
     if rowIndex <= 3 || 13 <= rowIndex
     then
       printf "\n"
@@ -393,7 +393,7 @@ module Staff =
   let printOddRow rowIndex questionRowIndex =
     if rowIndex = questionRowIndex
     then
-      printf "     *\n"
+      printf "      *\n"
     else
       printf "\n"
 
