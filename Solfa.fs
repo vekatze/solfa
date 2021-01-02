@@ -35,23 +35,6 @@ let findIndex (a : 'a) (xs : List<'a>) =
     | _ :: ys ->
       helper a ys (i + 1)
   helper a xs 0
-    // if i >= xs.Length
-    // then
-    //   None
-    // else
-
-  // let valueOrNone =
-  //   for i = 0 to xs.Length - 1 do
-  //     if xs.[i] = a
-  //     then
-  //       Some a
-  //     else
-  //       None
-  // admit
-  // match xs with
-  // | [] ->
-  //   None
-  // | y :: ys when
 
 let noteAt stringIndex fretIndex =
   rem (5 + 7 * stringIndex + fretIndex) 12
@@ -354,7 +337,7 @@ module Pitch =
         helper (challenge questionNote i :: acc) (i - 1)
     helper [] i
 
-module Staff =
+module Stave =
 
   let rec takeRandomNote _ =
     let questionNote = (new System.Random()).Next(9, 36)
@@ -436,7 +419,6 @@ module Staff =
         helper (challenge questionNote i :: acc) (i - 1)
     helper [] i
 
-
 [<EntryPoint>]
 let main args =
   for i = 0 to args.Length - 1 do
@@ -450,8 +432,8 @@ let main args =
         Some Interval.lesson
       | "pitch" ->
         Some Pitch.lesson
-      | "staff" ->
-        Some Staff.lesson
+      | "stave" ->
+        Some Stave.lesson
       | _ ->
         None
     match lessonOrNone with
