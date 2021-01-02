@@ -58,7 +58,7 @@ let parseInt (str : string) =
     None
 
 let baseNoteOf stringIndex =
-  [26; 21; 16; 11; 6; 1].[stringIndex]
+  [29; 24; 19; 14; 9; 4].[stringIndex]
 
 let play basename =
   let p = new System.Diagnostics.Process ()
@@ -74,11 +74,7 @@ let play basename =
   p
 
 let basenameAt stringIndex fretIndex =
-  string (baseNoteOf stringIndex + fretIndex)
-
-let playAt stringIndex fretIndex =
-  let basename = string (baseNoteOf stringIndex + fretIndex)
-  play basename
+  sprintf "%02d" (baseNoteOf stringIndex + fretIndex)
 
 let getInput basenameOrNone noteOrNone =
   let rawInputStr = Console.ReadLine ()
@@ -292,15 +288,15 @@ module NoteToFret =
 module Chroma =
 
   let rec takeRandomNote _ =
-    let questionFilename = (new System.Random()).Next(9, 38)
-    if List.contains (rem (questionFilename + 3) 12) standardScale
+    let questionFilename = (new System.Random()).Next(12, 41)
+    if List.contains (rem questionFilename 12) standardScale
     then
-      questionFilename + 3
+      questionFilename
     else
       takeRandomNote ()
 
   let challenge questionNote count =
-    let basename = (string (questionNote - 3))
+    let basename = sprintf "%02d" questionNote
     let p = play basename
     let t1 = DateTime.Now
     let rec f _ =
@@ -381,12 +377,12 @@ module Staff =
     printf "\n"
 
   let challenge questionNote count =
-    let basename = string (questionNote - 3)
+    // let basename = string (questionNote - 3)
     let t1 = DateTime.Now
     printRows (noteToRow questionNote)
     let rec f _ =
       printf "(%d/%d) > " (iteration - count + 1) iteration
-      match getInput (Some basename) None with
+      match getInput None None with
       | Some input when rem questionNote 12 = input ->
         let t2 = DateTime.Now
         (t2 - t1).TotalSeconds
