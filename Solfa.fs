@@ -176,8 +176,8 @@ module Interval =
       then
         acc
       else
-        let stringIndex = (new System.Random()).Next(1, 5)
-        let offset = (new System.Random()).Next(-1, 1)
+        let stringIndex = (new System.Random()).Next(1, 6)
+        let offset = (new System.Random()).Next(-1, 2)
         printRows stringIndex offset 1
         helper (challenge stringIndex offset i :: acc) (i - 1)
     helper [] i
@@ -185,8 +185,8 @@ module Interval =
 module FretToNote =
 
   let rec selectPoint _ =
-    let questionStringIndex = (new System.Random()).Next(0, 5)
-    let questionFretIndex = (new System.Random()).Next(0, 11)
+    let questionStringIndex = (new System.Random()).Next(0, 6)
+    let questionFretIndex = (new System.Random()).Next(0, 12)
     if List.contains (noteAt questionStringIndex questionFretIndex) [0; 2; 4; 5; 7; 9; 11]
     then
       (questionStringIndex, questionFretIndex)
@@ -246,6 +246,7 @@ module FretToNote =
 module NoteToFret =
 
   let printFooter _ =
+    printf "  "
     FretToNote.printFooter ()
 
   let printRow questionStringIndex stringIndex =
@@ -295,8 +296,8 @@ module NoteToFret =
       then
         acc
       else
-        let questionStringIndex = (new System.Random()).Next(1, 5)
-        let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length - 1)
+        let questionStringIndex = (new System.Random()).Next(1, 6)
+        let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length)
         let questionNote = standardScale.[questionNoteIndex]
         printRows questionStringIndex questionNote
         helper (challenge questionStringIndex questionNote i :: acc) (i - 1)
@@ -340,7 +341,7 @@ module Chroma =
 module Staff =
 
   let rec takeRandomNote _ =
-    let questionNote = (new System.Random()).Next(9, 36)
+    let questionNote = (new System.Random()).Next(9, 37)
     if List.contains (rem questionNote 12) standardScale
     then
       questionNote
