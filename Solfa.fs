@@ -94,9 +94,6 @@ let getInput basenameOrNone noteOrNone =
   else
     let inputStr = rawInputStr.Trim ()
     match inputStr, basenameOrNone, noteOrNone with
-    | "show", _, Some note ->
-      printf "note: %d\n" note
-      None
     | "p", Some basename, _ ->
       let _ = play basename
       None
@@ -263,7 +260,6 @@ module NoteToFret =
       printf "|\n"
 
   let printRows questionStringIndex =
-    printf "\n"
     for stringIndex = 0 to 5 do
       printRow questionStringIndex stringIndex
     printFooter
@@ -273,13 +269,15 @@ module NoteToFret =
     let p = play basename
     let t1 = DateTime.Now
     let rec f _ =
-      printf "(%d/%d) > " (iteration - count + 1) iteration
+      promptWith count
       match getInput (Some basename) (Some questionNote) with
       | Some input when questionNote = noteAt questionStringIndex input ->
+        eraseLines 8
         let t2 = DateTime.Now
         p.WaitForExit ()
         (t2 - t1).TotalSeconds
       | _ ->
+        eraseLines 1
         f ()
     f ()
 
