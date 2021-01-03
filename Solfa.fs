@@ -42,7 +42,6 @@ type Question = {
   eraseCount: int;
   printer: unit -> unit;
   basename: Option<string>;
-  note: Option<int>;
 }
 
 let eraseLines lineCount =
@@ -95,18 +94,18 @@ let play basename =
 let basenameAt stringIndex fretIndex =
   sprintf "%02d" (baseNoteOf stringIndex + fretIndex)
 
-let getInput basenameOrNone noteOrNone =
+let getInput basenameOrNone =
   let rawInputStr = Console.ReadLine ()
   if String.IsNullOrEmpty rawInputStr
   then
     None
   else
     let inputStr = rawInputStr.Trim ()
-    match inputStr, basenameOrNone, noteOrNone with
-    | "p", Some basename, _ ->
+    match inputStr, basenameOrNone with
+    | "p", Some basename ->
       let _ = play basename
       None
-    | "exit", _, _ ->
+    | "exit", _ ->
       exitWith 0
     | _ ->
       parseInt inputStr
@@ -140,7 +139,7 @@ let skelton count info =
   let pidOrNone = info.basename >>= (play >> Some)
   let rec f _ =
     promptWith count
-    match getInput info.basename info.note with
+    match getInput info.basename with
     | Some input when input = info.answer ->
       eraseLines info.eraseCount
       let _ = pidOrNone >>= (fun (p : Process) -> Some (p.WaitForExit ()))
@@ -179,7 +178,6 @@ module Interval =
       eraseCount = 7;
       printer = fun _ -> printRows stringIndex offset 1;
       basename = None;
-      note = None;
     }
 
   let lesson i =
@@ -236,7 +234,6 @@ module FretToNote =
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionFretIndex;
       basename = None;
-      note = None
     }
 
   let lesson i =
@@ -286,7 +283,6 @@ module NoteToFret =
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionNote;
       basename = Some (basenameAt questionStringIndex (fretOf questionStringIndex questionNote));
-      note = Some questionNote;
     }
 
   let lesson i =
@@ -317,7 +313,6 @@ module Chroma =
       eraseCount = 1;
       printer = fun _ -> ();
       basename = Some (sprintf "%02d" questionNote);
-      note = None;
     }
 
   let lesson i =
@@ -391,7 +386,6 @@ module Staff =
       eraseCount = 19;
       printer = fun _ -> printRows (noteToRow questionNote);
       basename = None;
-      note = None;
     }
 
   let lesson i =
