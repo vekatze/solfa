@@ -398,35 +398,47 @@ module Convention =
     accumulate upperBound <| fun currentIteration ->
       challenge (sample conventionInfoList) currentIteration
 
-type Arguments =
-  | [<CliPrefix(CliPrefix.None)>] Fret_To_Note
-  | [<CliPrefix(CliPrefix.None)>] Note_To_Fret
-  | [<CliPrefix(CliPrefix.None)>] Interval
-  | [<CliPrefix(CliPrefix.None)>] Chroma
-  | [<CliPrefix(CliPrefix.None)>] Staff
-  | [<CliPrefix(CliPrefix.None)>] Convention
+type SolfegeArgs =
   | [<AltCommandLine("-o")>] [<Mandatory>] Output of string
   | [<AltCommandLine("-i")>] [<Mandatory>] Iteration of int
 with
   interface IArgParserTemplate with
     member s.Usage =
       match s with
-      | Fret_To_Note ->
-        "do a solfege of finding the note for given fret position."
-      | Note_To_Fret ->
-        "do a solfege of finding the fret position for a note."
-      | Interval ->
-        "do a solfege of finding the interval between two given notes."
-      | Chroma ->
-        "do a solfege of finding the note name from its actual sound."
-      | Staff ->
-        "do a solfege of finding the note name for given position in a staff."
-      | Convention ->
-        "do a solfege of translating conventional names of intervals to integers."
       | Output _ ->
         "where to save the result."
       | Iteration _ ->
         "how many times do you want to iterate?"
+
+type Arguments =
+  | [<CliPrefix(CliPrefix.None)>] Interval of ParseResults<SolfegeArgs>
+  | [<CliPrefix(CliPrefix.None)>] Fret_Note of ParseResults<SolfegeArgs>
+  | [<CliPrefix(CliPrefix.None)>] Note_Fret of ParseResults<SolfegeArgs>
+  | [<CliPrefix(CliPrefix.None)>] Chroma of ParseResults<SolfegeArgs>
+  | [<CliPrefix(CliPrefix.None)>] Staff of ParseResults<SolfegeArgs>
+  | [<CliPrefix(CliPrefix.None)>] Convention of ParseResults<SolfegeArgs>
+with
+  interface IArgParserTemplate with
+    member s.Usage =
+      match s with
+      | Interval _ ->
+        "find the interval between two given notes."
+      | Fret_Note _ ->
+        "find the note for given fret position."
+      | Note_Fret _ ->
+        "find the fret position for a note."
+      | Chroma _ ->
+        "find the note name from its actual sound."
+      | Staff _ ->
+        "find the note name for given position in a staff."
+      | Convention _ ->
+        "translate conventional names of intervals to integers."
+
+let handleSolfegeArgs (results : ParseResults<SolfegeArgs>) =
+  for dirPath in results.GetResults Output do
+    outputDirPath <- dirPath
+  for i in results.GetResults Iteration do
+    upperBound <- i
 
 let args = System.Environment.GetCommandLineArgs ()
 
@@ -435,25 +447,25 @@ baseDirPath <- (Directory.GetParent (Array.head args)).ToString ()
 try
   let parser = ArgumentParser.Create<Arguments>()
   let results = parser.Parse (Array.tail args)
-  for dirPath in results.GetResults Output do
-    outputDirPath <- dirPath
-  for i in results.GetResults Iteration do
-    upperBound <- i
   for item in results.GetAllResults() do
     match item with
-    | Fret_To_Note ->
-      save "fret-to-note" (FretToNote.lesson ())
-    | Note_To_Fret ->
-      save "note-to-fret" (NoteToFret.lesson ())
-    | Interval ->
+    | Interval args ->
+      handleSolfegeArgs args
       save "interval" (Interval.lesson ())
-    | Chroma ->
+    | Fret_Note args ->
+      handleSolfegeArgs args
+      save "fret-note" (FretToNote.lesson ())
+    | Note_Fret args ->
+      handleSolfegeArgs args
+      save "note-fret" (NoteToFret.lesson ())
+    | Chroma args ->
+      handleSolfegeArgs args
       save "chroma" (Chroma.lesson ())
-    | Staff ->
+    | Staff args ->
+      handleSolfegeArgs args
       save "staff" (Staff.lesson ())
-    | Convention ->
+    | Convention args ->
+      handleSolfegeArgs args
       save "convention" (Convention.lesson ())
-    | _ ->
-      ()
 with e ->
   printfn "%s" e.Message
