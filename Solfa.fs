@@ -8,7 +8,7 @@ let mutable upperBound =
   0
 
 let mutable outputDirPath =
-  "./result"
+  ""
 
 let standardScale =
   [0; 2; 4; 5; 7; 9; 11]
