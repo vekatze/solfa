@@ -5,7 +5,7 @@ open System.Diagnostics
 open Argu
 
 let mutable upperBound =
-  3
+  100
 
 let mutable outputDirPath =
   "./result"
@@ -381,7 +381,7 @@ with
       | Output _ ->
         "where to save the result."
       | Iteration _ ->
-        "how many times should we do?"
+        "how many times do you want to iterate? [default: 100]"
 
 [<EntryPoint>]
 let main args =
