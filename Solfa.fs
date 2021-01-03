@@ -57,10 +57,6 @@ let exitWith<'a> i =
   let _ = Environment.Exit i
   admit // unreachable
 
-let quitWith<'T> str =
-  printf str
-  Environment.Exit(0)
-
 let parseInt (str : string) =
   match System.Int32.TryParse str with
   | true, i ->
