@@ -11,13 +11,6 @@ let standardScale =
 let admit<'a> =
   failwith<'a> "admit"
 
-let doWhen bool f =
-  if bool
-  then
-    f ()
-  else
-    ()
-
 let rem x m =
   let tmp = x % m
   if tmp >= 0
@@ -131,18 +124,16 @@ let save name (values : List<float>) =
     let path = dirPath + dateStr
     File.WriteAllLines(path, [string value])
 
-let (>>=) m f = Option.bind f m
-
 let generateQuestionWith currentIteration info =
   let t1 = DateTime.Now
   info.printer ()
-  let pidOrNone = info.basename >>= (play >> Some)
+  let pidOrNone = Option.bind (play >> Some) info.basename
   let rec f _ =
     promptWith currentIteration
     match getInput info.basename with
     | Some input when input = info.answer ->
       eraseLines info.eraseCount
-      let _ = pidOrNone >>= (fun (p : Process) -> Some (p.WaitForExit ()))
+      let _ = Option.bind (fun (p : Process) -> Some (p.WaitForExit ())) pidOrNone
       let t2 = DateTime.Now
       (t2 - t1).TotalSeconds
     | _ ->
@@ -224,7 +215,7 @@ module FretToNote =
         printf "|  \u001b[33m?\u001b[0m "
       else
         printf "|    "
-      doWhen (fretIndex = 0) (fun _ -> printf "|")
+      if fretIndex = 0 then printf "|"
     printf "|\n"
 
   let printRows questionStringIndex questionFretIndex =
@@ -261,10 +252,10 @@ module NoteToFret =
       if questionStringIndex = stringIndex
       then
         printf "\u001b[33m|\u001b[0m    "
-        doWhen (fretIndex = 0) (fun _ -> printf "\u001b[33m|\u001b[0m")
+        if fretIndex = 0 then printf "\u001b[33m|\u001b[0m"
       else
         printf "|    "
-        doWhen (fretIndex = 0) (fun _ -> printf "|")
+        if fretIndex = 0 then printf "|"
     if questionStringIndex = stringIndex
     then
       printf "\u001b[33m|\u001b[0m\n"
