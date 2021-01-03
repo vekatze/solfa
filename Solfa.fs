@@ -2,7 +2,7 @@ open System
 open System.IO
 open System.Diagnostics
 
-let iteration =
+let upperBound =
   100
 
 let standardScale =
@@ -50,9 +50,9 @@ let eraseLines lineCount =
     printf "\u001b[A"
   printf "\u001b[0J"
 
-let promptWith count =
+let promptWith currentIteration =
   printf "\n\u001b[A"
-  printf "(%d/%d) > " (iteration - count + 1) iteration
+  printf "(%d/%d) > " (upperBound - currentIteration + 1) upperBound
 
 let noteAt stringIndex fretIndex =
   rem (5 + 7 * stringIndex + fretIndex) 12
@@ -133,12 +133,12 @@ let save name (values : List<float>) =
 
 let (>>=) m f = Option.bind f m
 
-let generateQuestionWith count info =
+let generateQuestionWith currentIteration info =
   let t1 = DateTime.Now
   info.printer ()
   let pidOrNone = info.basename >>= (play >> Some)
   let rec f _ =
-    promptWith count
+    promptWith currentIteration
     match getInput info.basename with
     | Some input when input = info.answer ->
       eraseLines info.eraseCount
@@ -150,7 +150,7 @@ let generateQuestionWith count info =
       f ()
   f ()
 
-let compute i f =
+let accumulate i f =
   let rec helper acc i f =
     if i <= 0
     then
@@ -181,8 +181,8 @@ module Interval =
     for i = 5 downto 0 do
       printRow stringIndex offset i range
 
-  let challenge stringIndex offset count =
-    generateQuestionWith count {
+  let challenge stringIndex offset currentIteration =
+    generateQuestionWith currentIteration {
       answer = intervalAt stringIndex offset;
       eraseCount = 7;
       printer = fun _ -> printRows stringIndex offset 1;
@@ -190,7 +190,7 @@ module Interval =
     }
 
   let lesson _ =
-    compute iteration <| fun currentIteration ->
+    accumulate upperBound <| fun currentIteration ->
       let stringIndex = (new System.Random()).Next(1, 6)
       let offset = (new System.Random()).Next(-1, 2)
       challenge stringIndex offset currentIteration
@@ -232,8 +232,8 @@ module FretToNote =
       printRow questionStringIndex questionFretIndex stringIndex
     printFooter ()
 
-  let challenge questionStringIndex questionFretIndex count =
-    generateQuestionWith count {
+  let challenge questionStringIndex questionFretIndex currentIteration =
+    generateQuestionWith currentIteration {
       answer = noteAt questionStringIndex questionFretIndex;
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionFretIndex;
@@ -241,7 +241,7 @@ module FretToNote =
     }
 
   let lesson _ =
-    compute iteration <| fun currentIteration ->
+    accumulate upperBound <| fun currentIteration ->
       let (questionStringIndex, questionFretIndex) = selectPoint ()
       challenge questionStringIndex questionFretIndex currentIteration
 
@@ -276,8 +276,8 @@ module NoteToFret =
       printRow questionStringIndex stringIndex
     printFooter
 
-  let challenge questionStringIndex questionNote count =
-    generateQuestionWith count {
+  let challenge questionStringIndex questionNote currentIteration =
+    generateQuestionWith currentIteration {
       answer = fretOf questionStringIndex questionNote;
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionNote;
@@ -285,7 +285,7 @@ module NoteToFret =
     }
 
   let lesson _ =
-    compute iteration <| fun currentIteration ->
+    accumulate upperBound <| fun currentIteration ->
       let questionStringIndex = (new System.Random()).Next(1, 6)
       let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length)
       let questionNote = standardScale.[questionNoteIndex]
@@ -301,8 +301,8 @@ module Chroma =
     else
       takeRandomNote ()
 
-  let challenge questionNote count =
-    generateQuestionWith count {
+  let challenge questionNote currentIteration =
+    generateQuestionWith currentIteration {
       answer = rem questionNote 12;
       eraseCount = 1;
       printer = fun _ -> ();
@@ -310,7 +310,7 @@ module Chroma =
     }
 
   let lesson _ =
-    compute iteration <| fun currentIteration ->
+    accumulate upperBound <| fun currentIteration ->
       let questionNote = takeRandomNote ()
       challenge questionNote currentIteration
 
@@ -369,8 +369,8 @@ module Staff =
       printRow rowIndex questionRowIndex
     printf "\n"
 
-  let challenge questionNote count =
-    generateQuestionWith count {
+  let challenge questionNote currentIteration =
+    generateQuestionWith currentIteration {
       answer = rem questionNote 12;
       eraseCount = 19;
       printer = fun _ -> printRows (noteToRow questionNote);
@@ -378,7 +378,7 @@ module Staff =
     }
 
   let lesson _ =
-    compute iteration <| fun currentIteration ->
+    accumulate upperBound <| fun currentIteration ->
       let questionNote = takeRandomNote ()
       challenge questionNote currentIteration
 
