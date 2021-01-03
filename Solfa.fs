@@ -42,6 +42,10 @@ let eraseLines lineCount =
     printf "\u001b[A"
   printf "\u001b[0J"
 
+let promptWith count =
+  printf "\n\u001b[A"
+  printf "(%d/%d) > " (iteration - count + 1) iteration
+
 let noteAt stringIndex fretIndex =
   rem (5 + 7 * stringIndex + fretIndex) 12
 
@@ -147,8 +151,7 @@ module Interval =
   let rec challenge stringIndex offset count =
     let t1 = DateTime.Now
     let rec f _ =
-      printf "\n\u001b[A"
-      printf "(%d/%d) > " (iteration - count + 1) iteration
+      promptWith count
       match getInput None None with
       | Some input when input = intervalAt stringIndex offset ->
         eraseLines 7
@@ -204,7 +207,6 @@ module FretToNote =
     printf "|\n"
 
   let printRows questionStringIndex questionFretIndex =
-    printf "\n"
     for stringIndex = 0 to 5 do
       printRow questionStringIndex questionFretIndex stringIndex
     printFooter ()
@@ -212,12 +214,14 @@ module FretToNote =
   let challenge questionStringIndex questionFretIndex count =
     let t1 = DateTime.Now
     let rec f _ =
-      printf "(%d/%d) > " (iteration - count + 1) iteration
+      promptWith count
       match getInput None None with
       | Some input when input = noteAt questionStringIndex questionFretIndex ->
+        eraseLines 8
         let t2 = DateTime.Now
         (t2 - t1).TotalSeconds
       | _ ->
+        eraseLines 1
         f ()
     f ()
 
