@@ -382,22 +382,22 @@ module Staff =
       printOddRow rowIndex questionRowIndex
 
   let printRows questionRowIndex =
-    printf "\n"
     for rowIndex = 16 downto 0 do
       printRow rowIndex questionRowIndex
     printf "\n"
 
   let challenge questionNote count =
-    // let basename = string (questionNote - 3)
     let t1 = DateTime.Now
     printRows (noteToRow questionNote)
     let rec f _ =
-      printf "(%d/%d) > " (iteration - count + 1) iteration
+      promptWith count
       match getInput None None with
       | Some input when rem questionNote 12 = input ->
+        eraseLines 19
         let t2 = DateTime.Now
         (t2 - t1).TotalSeconds
       | _ ->
+        eraseLines 1
         f ()
     f ()
 
