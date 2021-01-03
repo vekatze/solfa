@@ -309,13 +309,15 @@ module Chroma =
     let p = play basename
     let t1 = DateTime.Now
     let rec f _ =
-      printf "(%d/%d) > " (iteration - count + 1) iteration
+      promptWith count
       match getInput (Some basename) None with
       | Some input when rem questionNote 12 = input ->
+        eraseLines 1
         let t2 = DateTime.Now
         p.WaitForExit ()
         (t2 - t1).TotalSeconds
       | _ ->
+        eraseLines 1
         f ()
     f ()
 
