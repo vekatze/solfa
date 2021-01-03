@@ -424,7 +424,7 @@ with
       | Staff ->
         "do a solfege of finding the note name for given position in a staff."
       | Convention ->
-        "do a solfege of translating conventional names of notes to note numbers."
+        "do a solfege of translating conventional names of intervals to integers."
       | Output _ ->
         "where to save the result."
       | Iteration _ ->
