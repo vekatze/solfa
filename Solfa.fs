@@ -68,7 +68,7 @@ let play basename =
   let p = new Process ()
   match Environment.OSVersion.Platform with
   | PlatformID.Unix ->
-      let arg = sprintf "%s/sine/%s.wav" baseDirPath basename
+      let arg = sprintf "%s/assets/%s.wav" baseDirPath basename
       p.StartInfo.FileName <- "paplay"
       p.StartInfo.Arguments <- arg
       p.StartInfo.RedirectStandardError <- true
@@ -132,6 +132,7 @@ let generateQuestionWith currentIteration info =
       (t2 - t1).TotalSeconds
     | _ ->
       eraseLines 1
+      let _ = play "beep"
       f ()
   f ()
 

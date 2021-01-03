@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <Compile Include="Solfa.fs" />
-    <Content Include="sine/*.wav">
+    <Content Include="assets/*.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
