@@ -10,6 +10,9 @@ let mutable upperBound =
 let mutable outputDirPath =
   ""
 
+let mutable baseDirPath =
+  ""
+
 let standardScale =
   [0; 2; 4; 5; 7; 9; 11]
 
@@ -61,7 +64,7 @@ let play basename =
   let p = new Process ()
   match Environment.OSVersion.Platform with
   | PlatformID.Unix ->
-      let arg = sprintf "./sine/%s.wav" basename
+      let arg = sprintf "%s/sine/%s.wav" baseDirPath basename
       p.StartInfo.FileName <- "paplay"
       p.StartInfo.Arguments <- arg
       p.StartInfo.RedirectStandardError <- true
@@ -383,29 +386,30 @@ with
       | Iteration _ ->
         "how many times do you want to iterate?"
 
-[<EntryPoint>]
-let main args =
+let args = System.Environment.GetCommandLineArgs ()
+
+baseDirPath <- (Directory.GetParent (Array.head args)).ToString ()
+
+try
   let parser = ArgumentParser.Create<Arguments>()
-  try
-    let results = parser.Parse args
-    for dirPath in results.GetResults Output do
-      outputDirPath <- dirPath
-    for i in results.GetResults Iteration do
-      upperBound <- i
-    for item in results.GetAllResults() do
-      match item with
-      | Fret_To_Note ->
-        save "fret-to-note" (FretToNote.lesson ())
-      | Note_To_Fret ->
-        save "note-to-fret" (NoteToFret.lesson ())
-      | Interval ->
-        save "interval" (Interval.lesson ())
-      | Chroma ->
-        save "chroma" (Chroma.lesson ())
-      | Staff ->
-        save "staff" (Staff.lesson ())
-      | _ ->
-        ()
-  with e ->
-    printfn "%s" e.Message
-  0
+  let results = parser.Parse (Array.tail args)
+  for dirPath in results.GetResults Output do
+    outputDirPath <- dirPath
+  for i in results.GetResults Iteration do
+    upperBound <- i
+  for item in results.GetAllResults() do
+    match item with
+    | Fret_To_Note ->
+      save "fret-to-note" (FretToNote.lesson ())
+    | Note_To_Fret ->
+      save "note-to-fret" (NoteToFret.lesson ())
+    | Interval ->
+      save "interval" (Interval.lesson ())
+    | Chroma ->
+      save "chroma" (Chroma.lesson ())
+    | Staff ->
+      save "staff" (Staff.lesson ())
+    | _ ->
+      ()
+with e ->
+  printfn "%s" e.Message
