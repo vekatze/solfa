@@ -5,7 +5,7 @@ open System.Diagnostics
 open Argu
 
 let mutable upperBound =
-  100
+  0
 
 let mutable outputDirPath =
   "./result"
@@ -363,7 +363,7 @@ type Arguments =
   | [<CliPrefix(CliPrefix.None)>] Chroma
   | [<CliPrefix(CliPrefix.None)>] Staff
   | [<AltCommandLine("-o")>] [<Mandatory>] Output of string
-  | [<AltCommandLine("-i")>] Iteration of int
+  | [<AltCommandLine("-i")>] [<Mandatory>] Iteration of int
 with
   interface IArgParserTemplate with
     member s.Usage =
@@ -381,7 +381,7 @@ with
       | Output _ ->
         "where to save the result."
       | Iteration _ ->
-        "how many times do you want to iterate? [default: 100]"
+        "how many times do you want to iterate?"
 
 [<EntryPoint>]
 let main args =
