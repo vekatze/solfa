@@ -13,8 +13,11 @@ let mutable outputDirPath =
 let mutable baseDirPath =
   ""
 
-let standardScale =
+let whiteNoteList =
   [0; 2; 4; 5; 7; 9; 11]
+
+let blackNoteList =
+  [1; 3; 6; 8; 10]
 
 let admit<'a> =
   failwith<'a> "admit"
@@ -276,18 +279,18 @@ module NoteToFret =
   let lesson _ =
     accumulate upperBound <| fun currentIteration ->
       let questionStringIndex = (new System.Random()).Next(1, 6)
-      let questionNote = sample standardScale
+      let questionNote = sample whiteNoteList
       challenge questionStringIndex questionNote currentIteration
 
 module Chroma =
 
-  let rec takeRandomNote _ =
+  let rec takeRandomNote noteList =
     let questionFilename = (new System.Random()).Next(12, 41)
-    if List.contains (rem questionFilename 12) standardScale
+    if List.contains (rem questionFilename 12) noteList
     then
       questionFilename
     else
-      takeRandomNote ()
+      takeRandomNote noteList
 
   let challenge questionNote currentIteration =
     generateQuestionWith currentIteration {
@@ -297,16 +300,16 @@ module Chroma =
       basename = Some (sprintf "%02d" questionNote);
     }
 
-  let lesson _ =
+  let lesson noteList =
     accumulate upperBound <| fun currentIteration ->
-      let questionNote = takeRandomNote ()
+      let questionNote = takeRandomNote noteList
       challenge questionNote currentIteration
 
 module Staff =
 
   let rec takeRandomNote _ =
     let questionNote = (new System.Random()).Next(9, 37)
-    if List.contains (rem questionNote 12) standardScale
+    if List.contains (rem questionNote 12) whiteNoteList
     then
       questionNote
     else
@@ -406,6 +409,8 @@ type Arguments =
   | [<CliPrefix(CliPrefix.None)>] Interval
   | [<CliPrefix(CliPrefix.None)>] Fret_To_Note
   | [<CliPrefix(CliPrefix.None)>] Note_To_Fret
+  | [<CliPrefix(CliPrefix.None)>] White
+  | [<CliPrefix(CliPrefix.None)>] Black
   | [<CliPrefix(CliPrefix.None)>] Chroma
   | [<CliPrefix(CliPrefix.None)>] Staff
   | [<CliPrefix(CliPrefix.None)>] Convention
@@ -421,6 +426,10 @@ with
         "find the note for given fret position."
       | Note_To_Fret ->
         "find the fret position for a note."
+      | White ->
+        "find the white note name from its actual sound."
+      | Black ->
+        "find the black note name from its actual sound."
       | Chroma ->
         "find the note name from its actual sound."
       | Staff ->
@@ -451,8 +460,12 @@ try
       save "fret-to-note" (FretToNote.lesson ())
     | Note_To_Fret ->
       save "note-to-fret" (NoteToFret.lesson ())
+    | White ->
+      save "white" (Chroma.lesson whiteNoteList)
+    | Black ->
+      save "black" (Chroma.lesson blackNoteList)
     | Chroma ->
-      save "chroma" (Chroma.lesson ())
+      save "chroma" (Chroma.lesson (List.append whiteNoteList blackNoteList))
     | Staff ->
       save "staff" (Staff.lesson ())
     | Convention  ->
