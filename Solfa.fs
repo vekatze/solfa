@@ -57,6 +57,10 @@ let parseInt (str : string) =
   | _, _ ->
     None
 
+let sample (xs : List<'a>) =
+  let i = (new System.Random()).Next(0, xs.Length)
+  xs.[i]
+
 let baseNoteOf stringIndex =
   [29; 24; 19; 14; 9; 4].[stringIndex]
 
@@ -268,8 +272,9 @@ module NoteToFret =
   let lesson _ =
     accumulate upperBound <| fun currentIteration ->
       let questionStringIndex = (new System.Random()).Next(1, 6)
-      let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length)
-      let questionNote = standardScale.[questionNoteIndex]
+      // let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length)
+      // let questionNote = standardScale.[questionNoteIndex]
+      let questionNote = sample standardScale
       challenge questionStringIndex questionNote currentIteration
 
 module Chroma =
@@ -359,12 +364,49 @@ module Staff =
       let questionNote = takeRandomNote ()
       challenge questionNote currentIteration
 
+module Convention =
+
+  let conventionInfoList =
+    [("m2", 1);
+     ("M2", 2);
+     ("m3", 3);
+     ("M3", 4);
+     ("P4", 5);
+     ("P5", 7);
+     ("m6", 8);
+     ("M6", 9);
+     ("m7", 10);
+     ("M7", 11);
+     ("b9", 1);
+     ("9", 2);
+     ("#9", 3);
+     ("b11", 4);
+     ("11", 5);
+     ("#11", 6);
+     ("b13", 8);
+     ("13", 9);
+     ("#13", 10)
+     ]
+
+  let challenge conventionInfo currentIteration =
+    generateQuestionWith currentIteration {
+      answer = snd conventionInfo;
+      eraseCount = 2;
+      printer = fun _ -> printf "%s:\n" (fst conventionInfo);
+      basename = None;
+    }
+
+  let lesson _ =
+    accumulate upperBound <| fun currentIteration ->
+      challenge (sample conventionInfoList) currentIteration
+
 type Arguments =
   | [<CliPrefix(CliPrefix.None)>] Fret_To_Note
   | [<CliPrefix(CliPrefix.None)>] Note_To_Fret
   | [<CliPrefix(CliPrefix.None)>] Interval
   | [<CliPrefix(CliPrefix.None)>] Chroma
   | [<CliPrefix(CliPrefix.None)>] Staff
+  | [<CliPrefix(CliPrefix.None)>] Convention
   | [<AltCommandLine("-o")>] [<Mandatory>] Output of string
   | [<AltCommandLine("-i")>] [<Mandatory>] Iteration of int
 with
@@ -381,6 +423,8 @@ with
         "do a solfege of finding the note name from its actual sound."
       | Staff ->
         "do a solfege of finding the note name for given position in a staff."
+      | Convention ->
+        "do a solfege of translating conventional names of notes to note numbers."
       | Output _ ->
         "where to save the result."
       | Iteration _ ->
@@ -409,6 +453,8 @@ try
       save "chroma" (Chroma.lesson ())
     | Staff ->
       save "staff" (Staff.lesson ())
+    | Convention ->
+      save "convention" (Convention.lesson ())
     | _ ->
       ()
 with e ->
