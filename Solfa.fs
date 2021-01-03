@@ -272,8 +272,6 @@ module NoteToFret =
   let lesson _ =
     accumulate upperBound <| fun currentIteration ->
       let questionStringIndex = (new System.Random()).Next(1, 6)
-      // let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length)
-      // let questionNote = standardScale.[questionNoteIndex]
       let questionNote = sample standardScale
       challenge questionStringIndex questionNote currentIteration
 
