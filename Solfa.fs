@@ -130,9 +130,12 @@ let generateQuestionWith currentIteration info =
       let _ = Option.bind (fun (p : Process) -> Some (p.WaitForExit ())) pidOrNone
       let t2 = DateTime.Now
       (t2 - t1).TotalSeconds
-    | _ ->
+    | Some _ ->
       eraseLines 1
       let _ = play "beep"
+      f ()
+    | _ ->
+      eraseLines 1
       f ()
   f ()
 
