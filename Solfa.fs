@@ -2,8 +2,13 @@ open System
 open System.IO
 open System.Diagnostics
 
-let upperBound =
-  100
+open Argu
+
+let mutable upperBound =
+  3
+
+let mutable outputDirPath =
+  "./result"
 
 let standardScale =
   [0; 2; 4; 5; 7; 9; 11]
@@ -100,7 +105,7 @@ let save name (values : List<float>) =
     ()
   else
     let value = (sum values) / (float values.Length)
-    let dirPath = sprintf "./result/%s/" name
+    let dirPath = sprintf "%s/%s/" outputDirPath name
     let _ = System.IO.Directory.CreateDirectory dirPath
     let dateStr = DateTime.Now.ToString("yyyy-MM-dd-HHmmss")
     let path = dirPath + dateStr
@@ -351,26 +356,56 @@ module Staff =
       let questionNote = takeRandomNote ()
       challenge questionNote currentIteration
 
+type Arguments =
+  | [<CliPrefix(CliPrefix.None)>] Fret_To_Note
+  | [<CliPrefix(CliPrefix.None)>] Note_To_Fret
+  | [<CliPrefix(CliPrefix.None)>] Interval
+  | [<CliPrefix(CliPrefix.None)>] Chroma
+  | [<CliPrefix(CliPrefix.None)>] Staff
+  | [<AltCommandLine("-o")>] [<Mandatory>] Output of string
+  | [<AltCommandLine("-i")>] Iteration of int
+with
+  interface IArgParserTemplate with
+    member s.Usage =
+      match s with
+      | Fret_To_Note ->
+        "do a solfege of finding the note for given fret position."
+      | Note_To_Fret ->
+        "do a solfege of finding the fret position for a note."
+      | Interval ->
+        "do a solfege of finding the interval between two given notes."
+      | Chroma ->
+        "do a solfege of finding the note name from its actual sound."
+      | Staff ->
+        "do a solfege of finding the note name for given position in a staff."
+      | Output _ ->
+        "where to save the result."
+      | Iteration _ ->
+        "how many times should we do?"
+
 [<EntryPoint>]
 let main args =
-  for i = 0 to args.Length - 1 do
-    let lessonOrNone =
-      match args.[i] with
-      | "fret-to-note" ->
-        Some FretToNote.lesson
-      | "note-to-fret" ->
-        Some NoteToFret.lesson
-      | "interval" ->
-        Some Interval.lesson
-      | "chroma" ->
-        Some Chroma.lesson
-      | "staff" ->
-        Some Staff.lesson
+  let parser = ArgumentParser.Create<Arguments>()
+  try
+    let results = parser.Parse args
+    for dirPath in results.GetResults Output do
+      outputDirPath <- dirPath
+    for i in results.GetResults Iteration do
+      upperBound <- i
+    for item in results.GetAllResults() do
+      match item with
+      | Fret_To_Note ->
+        save "fret-to-note" (FretToNote.lesson ())
+      | Note_To_Fret ->
+        save "note-to-fret" (NoteToFret.lesson ())
+      | Interval ->
+        save "interval" (Interval.lesson ())
+      | Chroma ->
+        save "chroma" (Chroma.lesson ())
+      | Staff ->
+        save "staff" (Staff.lesson ())
       | _ ->
-        None
-    match lessonOrNone with
-    | Some lesson ->
-      save args.[i] (lesson ())
-    | None ->
-      ()
+        ()
+  with e ->
+    printfn "%s" e.Message
   0
