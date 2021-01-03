@@ -19,17 +19,6 @@ let rem x m =
   else
     tmp + m
 
-let findIndex (a : 'a) (xs : List<'a>) =
-  let rec helper (a : 'a) (xs : List<'a>) i =
-    match xs with
-    | [] ->
-      None
-    | y :: ys when a = y ->
-      Some i
-    | _ :: ys ->
-      helper a ys (i + 1)
-  helper a xs 0
-
 type Question = {
   answer: int;
   eraseCount: int;
@@ -52,10 +41,6 @@ let noteAt stringIndex fretIndex =
 
 let fretOf stringIndex note =
   rem (note - 5 - 7 * stringIndex) 12
-
-let exitWith<'a> i =
-  let _ = Environment.Exit i
-  admit // unreachable
 
 let parseInt (str : string) =
   match System.Int32.TryParse str with
@@ -95,7 +80,8 @@ let getInput basenameOrNone =
       let _ = play basename
       None
     | "exit", _ ->
-      exitWith 0
+      let _ = Environment.Exit 0
+      None // unreachable
     | _ ->
       parseInt inputStr
 
@@ -314,11 +300,7 @@ module Staff =
   let noteToRow note =
     //              A       C                   A       C                   A       C
     let noteList = [9; 11; 12; 14; 16; 17; 19; 21; 23; 24; 26; 28; 29; 31; 33; 35; 36]
-    match findIndex note noteList with
-    | None ->
-      failwith "(unreachable)"
-    | Some rowIndex ->
-      rowIndex
+    List.findIndex ((=) note) noteList
 
   let printEvenRow rowIndex questionRowIndex =
     if rowIndex <= 3 || 13 <= rowIndex
