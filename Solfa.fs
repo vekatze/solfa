@@ -1,5 +1,6 @@
 open System
 open System.IO
+open System.Diagnostics
 
 let iteration =
   100
@@ -36,6 +37,14 @@ let findIndex (a : 'a) (xs : List<'a>) =
       helper a ys (i + 1)
   helper a xs 0
 
+type Question = {
+  answer: int;
+  eraseCount: int;
+  printer: unit -> unit;
+  basename: Option<string>;
+  note: Option<int>;
+}
+
 let eraseLines lineCount =
   printf "\r"
   for i = 1 to lineCount do
@@ -71,7 +80,7 @@ let baseNoteOf stringIndex =
   [29; 24; 19; 14; 9; 4].[stringIndex]
 
 let play basename =
-  let p = new System.Diagnostics.Process ()
+  let p = new Process ()
   match Environment.OSVersion.Platform with
   | PlatformID.Unix ->
       let arg = sprintf "./sine/%s.wav" basename
@@ -123,6 +132,25 @@ let save name (values : List<float>) =
     let path = dirPath + dateStr
     File.WriteAllLines(path, [string value])
 
+let (>>=) m f = Option.bind f m
+
+let skelton count info =
+  let t1 = DateTime.Now
+  info.printer ()
+  let pidOrNone = info.basename >>= (play >> Some)
+  let rec f _ =
+    promptWith count
+    match getInput info.basename info.note with
+    | Some input when input = info.answer ->
+      eraseLines info.eraseCount
+      let _ = pidOrNone >>= (fun (p : Process) -> Some (p.WaitForExit ()))
+      let t2 = DateTime.Now
+      (t2 - t1).TotalSeconds
+    | _ ->
+      eraseLines 1
+      f ()
+  f ()
+
 module Interval =
 
   let intervalAt stringIndex offset =
@@ -145,19 +173,14 @@ module Interval =
     for i = 5 downto 0 do
       printRow stringIndex offset i range
 
-  let rec challenge stringIndex offset count =
-    let t1 = DateTime.Now
-    let rec f _ =
-      promptWith count
-      match getInput None None with
-      | Some input when input = intervalAt stringIndex offset ->
-        eraseLines 7
-        let t2 = DateTime.Now
-        (t2 - t1).TotalSeconds
-      | _ ->
-        eraseLines 1
-        f ()
-    f ()
+  let challenge stringIndex offset count =
+    skelton count {
+      answer = intervalAt stringIndex offset;
+      eraseCount = 7;
+      printer = fun _ -> printRows stringIndex offset 1;
+      basename = None;
+      note = None;
+    }
 
   let lesson i =
     let rec helper acc i =
@@ -167,7 +190,6 @@ module Interval =
       else
         let stringIndex = (new System.Random()).Next(1, 6)
         let offset = (new System.Random()).Next(-1, 2)
-        printRows stringIndex offset 1
         helper (challenge stringIndex offset i :: acc) (i - 1)
     helper [] i
 
@@ -209,18 +231,13 @@ module FretToNote =
     printFooter ()
 
   let challenge questionStringIndex questionFretIndex count =
-    let t1 = DateTime.Now
-    let rec f _ =
-      promptWith count
-      match getInput None None with
-      | Some input when input = noteAt questionStringIndex questionFretIndex ->
-        eraseLines 8
-        let t2 = DateTime.Now
-        (t2 - t1).TotalSeconds
-      | _ ->
-        eraseLines 1
-        f ()
-    f ()
+    skelton count {
+      answer = noteAt questionStringIndex questionFretIndex;
+      eraseCount = 8;
+      printer = fun _ -> printRows questionStringIndex questionFretIndex;
+      basename = None;
+      note = None
+    }
 
   let lesson i =
     let rec helper acc i =
@@ -229,7 +246,6 @@ module FretToNote =
         acc
       else
         let (questionStringIndex, questionFretIndex) = selectPoint ()
-        printRows questionStringIndex questionFretIndex
         helper (challenge questionStringIndex questionFretIndex i :: acc) (i - 1)
     helper [] i
 
@@ -265,21 +281,13 @@ module NoteToFret =
     printFooter
 
   let challenge questionStringIndex questionNote count =
-    let basename = basenameAt questionStringIndex (fretOf questionStringIndex questionNote)
-    let p = play basename
-    let t1 = DateTime.Now
-    let rec f _ =
-      promptWith count
-      match getInput (Some basename) (Some questionNote) with
-      | Some input when questionNote = noteAt questionStringIndex input ->
-        eraseLines 8
-        let t2 = DateTime.Now
-        p.WaitForExit ()
-        (t2 - t1).TotalSeconds
-      | _ ->
-        eraseLines 1
-        f ()
-    f ()
+    skelton count {
+      answer = fretOf questionStringIndex questionNote;
+      eraseCount = 8;
+      printer = fun _ -> printRows questionStringIndex questionNote;
+      basename = Some (basenameAt questionStringIndex (fretOf questionStringIndex questionNote));
+      note = Some questionNote;
+    }
 
   let lesson i =
     let rec helper acc i =
@@ -290,7 +298,6 @@ module NoteToFret =
         let questionStringIndex = (new System.Random()).Next(1, 6)
         let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length)
         let questionNote = standardScale.[questionNoteIndex]
-        printRows questionStringIndex questionNote
         helper (challenge questionStringIndex questionNote i :: acc) (i - 1)
     helper [] i
 
@@ -305,21 +312,13 @@ module Chroma =
       takeRandomNote ()
 
   let challenge questionNote count =
-    let basename = sprintf "%02d" questionNote
-    let p = play basename
-    let t1 = DateTime.Now
-    let rec f _ =
-      promptWith count
-      match getInput (Some basename) None with
-      | Some input when rem questionNote 12 = input ->
-        eraseLines 1
-        let t2 = DateTime.Now
-        p.WaitForExit ()
-        (t2 - t1).TotalSeconds
-      | _ ->
-        eraseLines 1
-        f ()
-    f ()
+    skelton count {
+      answer = rem questionNote 12;
+      eraseCount = 1;
+      printer = fun _ -> ();
+      basename = Some (sprintf "%02d" questionNote);
+      note = None;
+    }
 
   let lesson i =
     let rec helper acc i =
@@ -387,19 +386,13 @@ module Staff =
     printf "\n"
 
   let challenge questionNote count =
-    let t1 = DateTime.Now
-    printRows (noteToRow questionNote)
-    let rec f _ =
-      promptWith count
-      match getInput None None with
-      | Some input when rem questionNote 12 = input ->
-        eraseLines 19
-        let t2 = DateTime.Now
-        (t2 - t1).TotalSeconds
-      | _ ->
-        eraseLines 1
-        f ()
-    f ()
+    skelton count {
+      answer = rem questionNote 12;
+      eraseCount = 19;
+      printer = fun _ -> printRows (noteToRow questionNote);
+      basename = None;
+      note = None;
+    }
 
   let lesson i =
     let rec helper acc i =
