@@ -36,6 +36,12 @@ let findIndex (a : 'a) (xs : List<'a>) =
       helper a ys (i + 1)
   helper a xs 0
 
+let eraseLines lineCount =
+  printf "\r"
+  for i = 1 to lineCount do
+    printf "\u001b[A"
+  printf "\u001b[0J"
+
 let noteAt stringIndex fretIndex =
   rem (5 + 7 * stringIndex + fretIndex) 12
 
@@ -80,7 +86,6 @@ let getInput basenameOrNone noteOrNone =
   let rawInputStr = Console.ReadLine ()
   if String.IsNullOrEmpty rawInputStr
   then
-    printf "\n"
     None
   else
     let inputStr = rawInputStr.Trim ()
@@ -136,19 +141,21 @@ module Interval =
     printf "|\n"
 
   let printRows stringIndex offset range =
-    printf "\n"
     for i = 5 downto 0 do
       printRow stringIndex offset i range
 
   let rec challenge stringIndex offset count =
     let t1 = DateTime.Now
     let rec f _ =
+      printf "\n\u001b[A"
       printf "(%d/%d) > " (iteration - count + 1) iteration
       match getInput None None with
       | Some input when input = intervalAt stringIndex offset ->
+        eraseLines 7
         let t2 = DateTime.Now
         (t2 - t1).TotalSeconds
       | _ ->
+        eraseLines 1
         f ()
     f ()
 
