@@ -133,7 +133,7 @@ let save name (values : List<float>) =
 
 let (>>=) m f = Option.bind f m
 
-let skelton count info =
+let generateQuestionWith count info =
   let t1 = DateTime.Now
   info.printer ()
   let pidOrNone = info.basename >>= (play >> Some)
@@ -149,6 +149,15 @@ let skelton count info =
       eraseLines 1
       f ()
   f ()
+
+let compute i f =
+  let rec helper acc i f =
+    if i <= 0
+    then
+      acc
+    else
+      helper (f i :: acc) (i - 1) f
+  helper [] i f
 
 module Interval =
 
@@ -173,23 +182,18 @@ module Interval =
       printRow stringIndex offset i range
 
   let challenge stringIndex offset count =
-    skelton count {
+    generateQuestionWith count {
       answer = intervalAt stringIndex offset;
       eraseCount = 7;
       printer = fun _ -> printRows stringIndex offset 1;
       basename = None;
     }
 
-  let lesson i =
-    let rec helper acc i =
-      if i <= 0
-      then
-        acc
-      else
-        let stringIndex = (new System.Random()).Next(1, 6)
-        let offset = (new System.Random()).Next(-1, 2)
-        helper (challenge stringIndex offset i :: acc) (i - 1)
-    helper [] i
+  let lesson _ =
+    compute iteration <| fun currentIteration ->
+      let stringIndex = (new System.Random()).Next(1, 6)
+      let offset = (new System.Random()).Next(-1, 2)
+      challenge stringIndex offset currentIteration
 
 module FretToNote =
 
@@ -229,22 +233,17 @@ module FretToNote =
     printFooter ()
 
   let challenge questionStringIndex questionFretIndex count =
-    skelton count {
+    generateQuestionWith count {
       answer = noteAt questionStringIndex questionFretIndex;
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionFretIndex;
       basename = None;
     }
 
-  let lesson i =
-    let rec helper acc i =
-      if i <= 0
-      then
-        acc
-      else
-        let (questionStringIndex, questionFretIndex) = selectPoint ()
-        helper (challenge questionStringIndex questionFretIndex i :: acc) (i - 1)
-    helper [] i
+  let lesson _ =
+    compute iteration <| fun currentIteration ->
+      let (questionStringIndex, questionFretIndex) = selectPoint ()
+      challenge questionStringIndex questionFretIndex currentIteration
 
 module NoteToFret =
 
@@ -278,24 +277,19 @@ module NoteToFret =
     printFooter
 
   let challenge questionStringIndex questionNote count =
-    skelton count {
+    generateQuestionWith count {
       answer = fretOf questionStringIndex questionNote;
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionNote;
       basename = Some (basenameAt questionStringIndex (fretOf questionStringIndex questionNote));
     }
 
-  let lesson i =
-    let rec helper acc i =
-      if i <= 0
-      then
-        acc
-      else
-        let questionStringIndex = (new System.Random()).Next(1, 6)
-        let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length)
-        let questionNote = standardScale.[questionNoteIndex]
-        helper (challenge questionStringIndex questionNote i :: acc) (i - 1)
-    helper [] i
+  let lesson _ =
+    compute iteration <| fun currentIteration ->
+      let questionStringIndex = (new System.Random()).Next(1, 6)
+      let questionNoteIndex = (new System.Random()).Next(0, standardScale.Length)
+      let questionNote = standardScale.[questionNoteIndex]
+      challenge questionStringIndex questionNote currentIteration
 
 module Chroma =
 
@@ -308,22 +302,17 @@ module Chroma =
       takeRandomNote ()
 
   let challenge questionNote count =
-    skelton count {
+    generateQuestionWith count {
       answer = rem questionNote 12;
       eraseCount = 1;
       printer = fun _ -> ();
       basename = Some (sprintf "%02d" questionNote);
     }
 
-  let lesson i =
-    let rec helper acc i =
-      if i <= 0
-      then
-        acc
-      else
-        let questionNote = takeRandomNote ()
-        helper (challenge questionNote i :: acc) (i - 1)
-    helper [] i
+  let lesson _ =
+    compute iteration <| fun currentIteration ->
+      let questionNote = takeRandomNote ()
+      challenge questionNote currentIteration
 
 module Staff =
 
@@ -381,22 +370,17 @@ module Staff =
     printf "\n"
 
   let challenge questionNote count =
-    skelton count {
+    generateQuestionWith count {
       answer = rem questionNote 12;
       eraseCount = 19;
       printer = fun _ -> printRows (noteToRow questionNote);
       basename = None;
     }
 
-  let lesson i =
-    let rec helper acc i =
-      if i <= 0
-      then
-        acc
-      else
-        let questionNote = takeRandomNote ()
-        helper (challenge questionNote i :: acc) (i - 1)
-    helper [] i
+  let lesson _ =
+    compute iteration <| fun currentIteration ->
+      let questionNote = takeRandomNote ()
+      challenge questionNote currentIteration
 
 [<EntryPoint>]
 let main args =
@@ -417,7 +401,7 @@ let main args =
         None
     match lessonOrNone with
     | Some lesson ->
-      save args.[i] (lesson iteration)
+      save args.[i] (lesson ())
     | None ->
       ()
   0
