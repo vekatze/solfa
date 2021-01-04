@@ -218,7 +218,7 @@ module Interval =
     for i = 5 downto 0 do
       printRow stringIndex offset i range
 
-  let challenge stringIndex offset currentIteration =
+  let question stringIndex offset currentIteration =
     generateQuestionWith currentIteration {
       answerList = [intervalAt stringIndex offset];
       eraseCount = 7;
@@ -230,7 +230,7 @@ module Interval =
     accumulate solfaCount <| fun currentIteration ->
       let stringIndex = (new System.Random()).Next(1, 6)
       let offset = (new System.Random()).Next(-1, 2)
-      challenge stringIndex offset currentIteration
+      question stringIndex offset currentIteration
 
 module FretToNote =
 
@@ -269,7 +269,7 @@ module FretToNote =
       printRow questionStringIndex questionFretIndex stringIndex
     printFooter ()
 
-  let challenge questionStringIndex questionFretIndex currentIteration =
+  let question questionStringIndex questionFretIndex currentIteration =
     generateQuestionWith currentIteration {
       answerList = [noteAt questionStringIndex questionFretIndex];
       eraseCount = 8;
@@ -280,7 +280,7 @@ module FretToNote =
   let lesson _ =
     accumulate solfaCount <| fun currentIteration ->
       let (questionStringIndex, questionFretIndex) = selectPoint ()
-      challenge questionStringIndex questionFretIndex currentIteration
+      question questionStringIndex questionFretIndex currentIteration
 
 module NoteToFret =
 
@@ -313,7 +313,7 @@ module NoteToFret =
       printRow questionStringIndex stringIndex
     printFooter
 
-  let challenge questionStringIndex questionNote currentIteration =
+  let question questionStringIndex questionNote currentIteration =
     generateQuestionWith currentIteration {
       answerList = [fretOf questionStringIndex questionNote];
       eraseCount = 8;
@@ -325,7 +325,7 @@ module NoteToFret =
     accumulate solfaCount <| fun currentIteration ->
       let questionStringIndex = (new System.Random()).Next(1, 6)
       let questionNote = sample whiteNoteList
-      challenge questionStringIndex questionNote currentIteration
+      question questionStringIndex questionNote currentIteration
 
 module Chroma =
 
@@ -337,7 +337,7 @@ module Chroma =
     else
       takeRandomNote noteList
 
-  let challenge questionNoteList currentIteration =
+  let question questionNoteList currentIteration =
     generateQuestionWith currentIteration {
       answerList = List.map (fun x -> rem x 12) questionNoteList;
       eraseCount = 1;
@@ -348,7 +348,7 @@ module Chroma =
   let lesson noteList =
     accumulate solfaCount <| fun currentIteration ->
       let questionNoteList = List.map (fun _ -> takeRandomNote noteList) [0 .. solfaSize - 1]
-      challenge questionNoteList currentIteration
+      question questionNoteList currentIteration
 
 module Staff =
 
@@ -401,7 +401,7 @@ module Staff =
       printRow rowIndex questionRowIndex
     printf "\n"
 
-  let challenge questionNote currentIteration =
+  let question questionNote currentIteration =
     generateQuestionWith currentIteration {
       answerList = [rem questionNote 12];
       eraseCount = 19;
@@ -412,7 +412,7 @@ module Staff =
   let lesson _ =
     accumulate solfaCount <| fun currentIteration ->
       let questionNote = takeRandomNote ()
-      challenge questionNote currentIteration
+      question questionNote currentIteration
 
 module Convention =
 
@@ -438,7 +438,7 @@ module Convention =
      ("#13", 10)
      ]
 
-  let challenge conventionInfo currentIteration =
+  let question conventionInfo currentIteration =
     generateQuestionWith currentIteration {
       answerList = [snd conventionInfo];
       eraseCount = 2;
@@ -448,7 +448,7 @@ module Convention =
 
   let lesson _ =
     accumulate solfaCount <| fun currentIteration ->
-      challenge (sample conventionInfoList) currentIteration
+      question (sample conventionInfoList) currentIteration
 
 type Arguments =
   | [<CliPrefix(CliPrefix.None)>] Interval
