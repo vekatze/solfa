@@ -15,7 +15,8 @@ type OptionalBuilder =
     | None ->
       None
 
-let optional = OptionalBuilder()
+let optional =
+  OptionalBuilder()
 
 let mutable solfaCount =
   0
@@ -24,7 +25,7 @@ let mutable solfaSize =
   0
 
 let mutable solfaLevel =
-  "easy"
+  0
 
 let mutable outputDirPath =
   ""
@@ -92,7 +93,7 @@ let play basenameList =
   | PlatformID.Unix ->
       p.StartInfo.FileName <- "bash"
       // let argList = List.map (fun x -> sprintf "paplay %s/assets/%s.wav" baseDirPath x) basenameList
-      let argList = List.map (fun x -> sprintf "paplay %s/assets/middle/%s.wav" baseDirPath x) basenameList
+      let argList = List.map (fun x -> sprintf "paplay %s/assets/%d/%s.wav" baseDirPath solfaLevel x) basenameList
       let arg = String.concat " && " argList
       p.StartInfo.Arguments <- sprintf "-c \"%s\"" arg
       p.StartInfo.RedirectStandardError <- true
@@ -448,6 +449,7 @@ type Arguments =
   | [<CliPrefix(CliPrefix.None)>] Convention
   | [<AltCommandLine("-s")>] [<Mandatory>] Size of int
   | [<AltCommandLine("-c")>] [<Mandatory>] Count of int
+  | [<AltCommandLine("-l")>] [<Mandatory>] Level of int
   | [<AltCommandLine("-o")>] [<Mandatory>] Output of string
 with
   interface IArgParserTemplate with
@@ -471,6 +473,8 @@ with
         "translate conventional names of intervals to integers."
       | Size _ ->
         "the \"size\" of each question of a test."
+      | Level _ ->
+        "the \"level\" of each question of a test."
       | Count _ ->
         "repeat each test for the number specified by this option."
       | Output _ ->
@@ -489,6 +493,8 @@ try
     solfaCount <- i
   for i in results.GetResults Size do
     solfaSize <- i
+  for l in results.GetResults Level do
+    solfaLevel <- l
   for item in results.GetAllResults() do
     match item with
     | Interval ->
