@@ -99,12 +99,15 @@ let sample (xs : List<'a>) =
 let baseNoteOf stringIndex =
   [29; 24; 19; 14; 9; 4].[stringIndex]
 
-let play basenameList =
+let toRelPath path =
+  sprintf "%d/%s.wav" solfaLevel path
+
+let play relPathList =
   let p = new Process ()
   match Environment.OSVersion.Platform with
   | PlatformID.Unix ->
       p.StartInfo.FileName <- "bash"
-      let argList = List.map (fun x -> sprintf "paplay %s/assets/%d/%s.wav" baseDirPath solfaLevel x) basenameList
+      let argList = List.map (fun relPath -> sprintf "paplay %s/assets/%s" baseDirPath relPath) relPathList
       let arg = String.concat " && " argList
       p.StartInfo.Arguments <- sprintf "-c \"%s\"" arg
       p.StartInfo.RedirectStandardError <- true
@@ -132,7 +135,7 @@ let getInput basenameList =
       | x :: xs ->
         match x, basenameList with
         | "p", _ ->
-          let _ = play basenameList
+          let _ = play (List.map toRelPath basenameList)
           None
         | "exit", _ ->
           let _ = Environment.Exit 0
@@ -169,7 +172,7 @@ let save name (values : List<float>) =
 let generateQuestionWith currentIteration info =
   let t1 = DateTime.Now
   info.printer ()
-  let pid = play info.basenameList
+  let pid = play (List.map toRelPath info.basenameList)
   let rec f _ =
     promptWith currentIteration
     match getInput info.basenameList with
@@ -180,7 +183,7 @@ let generateQuestionWith currentIteration info =
       (t2 - t1).TotalSeconds
     | Some _ ->
       eraseLines 1
-      let _ = play ["beep"]
+      let _ = play ["beep.wav"]
       f ()
     | _ ->
       eraseLines 1
