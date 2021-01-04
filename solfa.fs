@@ -25,7 +25,7 @@ let mutable solfaSize =
   0
 
 let mutable solfaLevel =
-  0
+  1
 
 let mutable outputDirPath =
   ""
@@ -92,7 +92,6 @@ let play basenameList =
   match Environment.OSVersion.Platform with
   | PlatformID.Unix ->
       p.StartInfo.FileName <- "bash"
-      // let argList = List.map (fun x -> sprintf "paplay %s/assets/%s.wav" baseDirPath x) basenameList
       let argList = List.map (fun x -> sprintf "paplay %s/assets/%d/%s.wav" baseDirPath solfaLevel x) basenameList
       let arg = String.concat " && " argList
       p.StartInfo.Arguments <- sprintf "-c \"%s\"" arg
@@ -484,6 +483,9 @@ let args = System.Environment.GetCommandLineArgs ()
 
 baseDirPath <- (Directory.GetParent (Array.head args)).ToString ()
 
+let withSuffix str =
+  sprintf "%s-level-%d-size-%d" str solfaLevel solfaSize
+
 try
   let parser = ArgumentParser.Create<Arguments>()
   let results = parser.Parse (Array.tail args)
@@ -504,11 +506,11 @@ try
     | Note_To_Fret ->
       save "note-to-fret" (NoteToFret.lesson ())
     | White ->
-      save (sprintf "white-%d" solfaSize) (Chroma.lesson whiteNoteList)
+      save (withSuffix "white") (Chroma.lesson whiteNoteList)
     | Black ->
-      save (sprintf "black-%d" solfaSize) (Chroma.lesson blackNoteList)
+      save (withSuffix "black") (Chroma.lesson blackNoteList)
     | Chroma ->
-      save (sprintf "chroma-%d" solfaSize) (Chroma.lesson (List.append whiteNoteList blackNoteList))
+      save (withSuffix "chroma") (Chroma.lesson (List.append whiteNoteList blackNoteList))
     | Staff ->
       save "staff" (Staff.lesson ())
     | Convention  ->
