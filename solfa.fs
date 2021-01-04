@@ -364,7 +364,6 @@ module Staff =
       takeRandomNote ()
 
   let noteToRow note =
-    //              A       C                   A       C                   A       C
     let noteList = [9; 11; 12; 14; 16; 17; 19; 21; 23; 24; 26; 28; 29; 31; 33; 35; 36]
     List.findIndex ((=) note) noteList
 
