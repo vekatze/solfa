@@ -23,6 +23,9 @@ let mutable solfaCount =
 let mutable solfaSize =
   0
 
+let mutable solfaLevel =
+  "easy"
+
 let mutable outputDirPath =
   ""
 
@@ -88,7 +91,8 @@ let play basenameList =
   match Environment.OSVersion.Platform with
   | PlatformID.Unix ->
       p.StartInfo.FileName <- "bash"
-      let argList = List.map (fun x -> sprintf "paplay %s/assets/%s.wav" baseDirPath x) basenameList
+      // let argList = List.map (fun x -> sprintf "paplay %s/assets/%s.wav" baseDirPath x) basenameList
+      let argList = List.map (fun x -> sprintf "paplay %s/assets/middle/%s.wav" baseDirPath x) basenameList
       let arg = String.concat " && " argList
       p.StartInfo.Arguments <- sprintf "-c \"%s\"" arg
       p.StartInfo.RedirectStandardError <- true
