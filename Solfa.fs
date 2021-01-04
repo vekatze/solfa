@@ -44,10 +44,10 @@ let rem x m =
     tmp + m
 
 type Question = {
-  answer: List<int>;
+  answerList: List<int>;
   eraseCount: int;
   printer: unit -> unit;
-  basename: Option<string>;
+  basenameList: List<string>;
 }
 
 let eraseLines lineCount =
@@ -80,13 +80,14 @@ let sample (xs : List<'a>) =
 let baseNoteOf stringIndex =
   [29; 24; 19; 14; 9; 4].[stringIndex]
 
-let play basename =
+let play basenameList =
   let p = new Process ()
   match Environment.OSVersion.Platform with
   | PlatformID.Unix ->
-      let arg = sprintf "%s/assets/%s.wav" baseDirPath basename
-      p.StartInfo.FileName <- "paplay"
-      p.StartInfo.Arguments <- arg
+      p.StartInfo.FileName <- "bash"
+      let argList = List.map (fun x -> sprintf "paplay %s/assets/%s.wav" baseDirPath x) basenameList
+      let arg = String.concat " && " argList
+      p.StartInfo.Arguments <- sprintf "-c \"%s\"" arg
       p.StartInfo.RedirectStandardError <- true
   | _ ->
       ()
@@ -96,7 +97,7 @@ let play basename =
 let basenameAt stringIndex fretIndex =
   sprintf "%02d" (baseNoteOf stringIndex + fretIndex)
 
-let getInput basenameOrNone =
+let getInput basenameList =
   let rawInputStr = Console.ReadLine ()
   if String.IsNullOrEmpty rawInputStr
   then
@@ -109,9 +110,9 @@ let getInput basenameOrNone =
       | [] ->
         Some []
       | x :: xs ->
-        match x, basenameOrNone with
-        | "p", Some basename ->
-          let _ = play basename
+        match x, basenameList with
+        | "p", _ ->
+          let _ = play basenameList
           None
         | "exit", _ ->
           let _ = Environment.Exit 0
@@ -148,18 +149,18 @@ let save name (values : List<float>) =
 let generateQuestionWith currentIteration info =
   let t1 = DateTime.Now
   info.printer ()
-  let pidOrNone = Option.bind (play >> Some) info.basename
+  let pid = play info.basenameList
   let rec f _ =
     promptWith currentIteration
-    match getInput info.basename with
-    | Some input when input = info.answer ->
+    match getInput info.basenameList with
+    | Some input when input = info.answerList ->
       eraseLines info.eraseCount
-      let _ = Option.bind (fun (p : Process) -> Some (p.WaitForExit ())) pidOrNone
+      pid.WaitForExit ()
       let t2 = DateTime.Now
       (t2 - t1).TotalSeconds
     | Some _ ->
       eraseLines 1
-      let _ = play "beep"
+      let _ = play ["beep"]
       f ()
     | _ ->
       eraseLines 1
@@ -199,10 +200,10 @@ module Interval =
 
   let challenge stringIndex offset currentIteration =
     generateQuestionWith currentIteration {
-      answer = [intervalAt stringIndex offset];
+      answerList = [intervalAt stringIndex offset];
       eraseCount = 7;
       printer = fun _ -> printRows stringIndex offset 1;
-      basename = None;
+      basenameList = [];
     }
 
   let lesson _ =
@@ -250,10 +251,10 @@ module FretToNote =
 
   let challenge questionStringIndex questionFretIndex currentIteration =
     generateQuestionWith currentIteration {
-      answer = [noteAt questionStringIndex questionFretIndex];
+      answerList = [noteAt questionStringIndex questionFretIndex];
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionFretIndex;
-      basename = None;
+      basenameList = [];
     }
 
   let lesson _ =
@@ -294,10 +295,10 @@ module NoteToFret =
 
   let challenge questionStringIndex questionNote currentIteration =
     generateQuestionWith currentIteration {
-      answer = [fretOf questionStringIndex questionNote];
+      answerList = [fretOf questionStringIndex questionNote];
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionNote;
-      basename = Some (basenameAt questionStringIndex (fretOf questionStringIndex questionNote));
+      basenameList = [basenameAt questionStringIndex (fretOf questionStringIndex questionNote)];
     }
 
   let lesson _ =
@@ -308,6 +309,9 @@ module NoteToFret =
 
 module Chroma =
 
+  let mutable chromaLength =
+    2
+
   let rec takeRandomNote noteList =
     let questionFilename = (new System.Random()).Next(12, 41)
     if List.contains (rem questionFilename 12) noteList
@@ -316,18 +320,18 @@ module Chroma =
     else
       takeRandomNote noteList
 
-  let challenge questionNote currentIteration =
+  let challenge questionNoteList currentIteration =
     generateQuestionWith currentIteration {
-      answer = [rem questionNote 12];
+      answerList = List.map (fun x -> rem x 12) questionNoteList;
       eraseCount = 1;
       printer = fun _ -> ();
-      basename = Some (sprintf "%02d" questionNote);
+      basenameList = List.map (fun x -> sprintf "%02d" x) questionNoteList;
     }
 
   let lesson noteList =
     accumulate upperBound <| fun currentIteration ->
-      let questionNote = takeRandomNote noteList
-      challenge questionNote currentIteration
+      let questionNoteList = List.map (fun _ -> takeRandomNote noteList) [0 .. chromaLength - 1]
+      challenge questionNoteList currentIteration
 
 module Staff =
 
@@ -382,10 +386,10 @@ module Staff =
 
   let challenge questionNote currentIteration =
     generateQuestionWith currentIteration {
-      answer = [rem questionNote 12];
+      answerList = [rem questionNote 12];
       eraseCount = 19;
       printer = fun _ -> printRows (noteToRow questionNote);
-      basename = None;
+      basenameList = [];
     }
 
   let lesson _ =
@@ -419,10 +423,10 @@ module Convention =
 
   let challenge conventionInfo currentIteration =
     generateQuestionWith currentIteration {
-      answer = [snd conventionInfo];
+      answerList = [snd conventionInfo];
       eraseCount = 2;
       printer = fun _ -> printf "%s:\n" (fst conventionInfo);
-      basename = None;
+      basenameList = [];
     }
 
   let lesson _ =
