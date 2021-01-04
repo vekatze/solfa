@@ -17,7 +17,10 @@ type OptionalBuilder =
 
 let optional = OptionalBuilder()
 
-let mutable upperBound =
+let mutable solfaCount =
+  0
+
+let mutable solfaSize =
   0
 
 let mutable outputDirPath =
@@ -58,7 +61,7 @@ let eraseLines lineCount =
 
 let promptWith currentIteration =
   printf "\n\u001b[A"
-  printf "(%d/%d) > " (upperBound - currentIteration + 1) upperBound
+  printf "(%d/%d) > " (solfaCount - currentIteration + 1) solfaCount
 
 let noteAt stringIndex fretIndex =
   rem (5 + 7 * stringIndex + fretIndex) 12
@@ -207,7 +210,7 @@ module Interval =
     }
 
   let lesson _ =
-    accumulate upperBound <| fun currentIteration ->
+    accumulate solfaCount <| fun currentIteration ->
       let stringIndex = (new System.Random()).Next(1, 6)
       let offset = (new System.Random()).Next(-1, 2)
       challenge stringIndex offset currentIteration
@@ -258,7 +261,7 @@ module FretToNote =
     }
 
   let lesson _ =
-    accumulate upperBound <| fun currentIteration ->
+    accumulate solfaCount <| fun currentIteration ->
       let (questionStringIndex, questionFretIndex) = selectPoint ()
       challenge questionStringIndex questionFretIndex currentIteration
 
@@ -302,15 +305,12 @@ module NoteToFret =
     }
 
   let lesson _ =
-    accumulate upperBound <| fun currentIteration ->
+    accumulate solfaCount <| fun currentIteration ->
       let questionStringIndex = (new System.Random()).Next(1, 6)
       let questionNote = sample whiteNoteList
       challenge questionStringIndex questionNote currentIteration
 
 module Chroma =
-
-  let mutable chromaLength =
-    2
 
   let rec takeRandomNote noteList =
     let questionFilename = (new System.Random()).Next(12, 41)
@@ -329,8 +329,8 @@ module Chroma =
     }
 
   let lesson noteList =
-    accumulate upperBound <| fun currentIteration ->
-      let questionNoteList = List.map (fun _ -> takeRandomNote noteList) [0 .. chromaLength - 1]
+    accumulate solfaCount <| fun currentIteration ->
+      let questionNoteList = List.map (fun _ -> takeRandomNote noteList) [0 .. solfaSize - 1]
       challenge questionNoteList currentIteration
 
 module Staff =
@@ -393,7 +393,7 @@ module Staff =
     }
 
   let lesson _ =
-    accumulate upperBound <| fun currentIteration ->
+    accumulate solfaCount <| fun currentIteration ->
       let questionNote = takeRandomNote ()
       challenge questionNote currentIteration
 
@@ -430,7 +430,7 @@ module Convention =
     }
 
   let lesson _ =
-    accumulate upperBound <| fun currentIteration ->
+    accumulate solfaCount <| fun currentIteration ->
       challenge (sample conventionInfoList) currentIteration
 
 type Arguments =
@@ -442,8 +442,9 @@ type Arguments =
   | [<CliPrefix(CliPrefix.None)>] Chroma
   | [<CliPrefix(CliPrefix.None)>] Staff
   | [<CliPrefix(CliPrefix.None)>] Convention
+  | [<AltCommandLine("-s")>] [<Mandatory>] Size of int
+  | [<AltCommandLine("-c")>] [<Mandatory>] Count of int
   | [<AltCommandLine("-o")>] [<Mandatory>] Output of string
-  | [<AltCommandLine("-i")>] [<Mandatory>] Iteration of int
 with
   interface IArgParserTemplate with
     member s.Usage =
@@ -464,10 +465,12 @@ with
         "find the note name for given position in a staff."
       | Convention ->
         "translate conventional names of intervals to integers."
+      | Size _ ->
+        "the \"size\" of each question of a test."
+      | Count _ ->
+        "repeat each test for the number specified by this option."
       | Output _ ->
         "where to output the result."
-      | Iteration _ ->
-        "this option sets the number of iteration."
 
 let args = System.Environment.GetCommandLineArgs ()
 
@@ -478,8 +481,10 @@ try
   let results = parser.Parse (Array.tail args)
   for dirPath in results.GetResults Output do
     outputDirPath <- dirPath
-  for i in results.GetResults Iteration do
-    upperBound <- i
+  for i in results.GetResults Count do
+    solfaCount <- i
+  for i in results.GetResults Size do
+    solfaSize <- i
   for item in results.GetAllResults() do
     match item with
     | Interval ->
