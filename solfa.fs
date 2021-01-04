@@ -25,7 +25,7 @@ let mutable solfaSize =
   0
 
 let mutable solfaLevel =
-  1
+  0
 
 let mutable outputDirPath =
   ""
