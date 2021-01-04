@@ -4,6 +4,19 @@ open System.Diagnostics
 
 open Argu
 
+[<Struct>]
+type OptionalBuilder =
+  member __.Return(v) =
+    Some v
+  member __.Bind(m, k) =
+    match m with
+    | Some value ->
+      k value
+    | None ->
+      None
+
+let optional = OptionalBuilder()
+
 let mutable upperBound =
   0
 
@@ -31,7 +44,7 @@ let rem x m =
     tmp + m
 
 type Question = {
-  answer: int;
+  answer: List<int>;
   eraseCount: int;
   printer: unit -> unit;
   basename: Option<string>;
@@ -90,15 +103,26 @@ let getInput basenameOrNone =
     None
   else
     let inputStr = rawInputStr.Trim ()
-    match inputStr, basenameOrNone with
-    | "p", Some basename ->
-      let _ = play basename
-      None
-    | "exit", _ ->
-      let _ = Environment.Exit 0
-      None // unreachable
-    | _ ->
-      parseInt inputStr
+    let wordList = Array.toList (inputStr.Split [|' '|])
+    let rec f wordList =
+      match wordList with
+      | [] ->
+        Some []
+      | x :: xs ->
+        match x, basenameOrNone with
+        | "p", Some basename ->
+          let _ = play basename
+          None
+        | "exit", _ ->
+          let _ = Environment.Exit 0
+          None // unreachable
+        | _ ->
+          optional {
+            let! x' = parseInt x
+            let! xs' = f xs
+            return (x' :: xs')
+          }
+    f wordList
 
 let sum xs =
   let rec helper acc xs =
@@ -175,7 +199,7 @@ module Interval =
 
   let challenge stringIndex offset currentIteration =
     generateQuestionWith currentIteration {
-      answer = intervalAt stringIndex offset;
+      answer = [intervalAt stringIndex offset];
       eraseCount = 7;
       printer = fun _ -> printRows stringIndex offset 1;
       basename = None;
@@ -226,7 +250,7 @@ module FretToNote =
 
   let challenge questionStringIndex questionFretIndex currentIteration =
     generateQuestionWith currentIteration {
-      answer = noteAt questionStringIndex questionFretIndex;
+      answer = [noteAt questionStringIndex questionFretIndex];
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionFretIndex;
       basename = None;
@@ -270,7 +294,7 @@ module NoteToFret =
 
   let challenge questionStringIndex questionNote currentIteration =
     generateQuestionWith currentIteration {
-      answer = fretOf questionStringIndex questionNote;
+      answer = [fretOf questionStringIndex questionNote];
       eraseCount = 8;
       printer = fun _ -> printRows questionStringIndex questionNote;
       basename = Some (basenameAt questionStringIndex (fretOf questionStringIndex questionNote));
@@ -294,7 +318,7 @@ module Chroma =
 
   let challenge questionNote currentIteration =
     generateQuestionWith currentIteration {
-      answer = rem questionNote 12;
+      answer = [rem questionNote 12];
       eraseCount = 1;
       printer = fun _ -> ();
       basename = Some (sprintf "%02d" questionNote);
@@ -358,7 +382,7 @@ module Staff =
 
   let challenge questionNote currentIteration =
     generateQuestionWith currentIteration {
-      answer = rem questionNote 12;
+      answer = [rem questionNote 12];
       eraseCount = 19;
       printer = fun _ -> printRows (noteToRow questionNote);
       basename = None;
@@ -395,7 +419,7 @@ module Convention =
 
   let challenge conventionInfo currentIteration =
     generateQuestionWith currentIteration {
-      answer = snd conventionInfo;
+      answer = [snd conventionInfo];
       eraseCount = 2;
       printer = fun _ -> printf "%s:\n" (fst conventionInfo);
       basename = None;
