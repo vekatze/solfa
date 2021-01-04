@@ -46,8 +46,9 @@ let blackNoteList =
 let admit<'a> =
   failwith<'a> "admit"
 
-// the result of `%` can be negative when the `x` in `x % m` is negative,
+// the result of `%` in F# can be negative when the `x` in `x % m` is negative,
 // which isn't appropriate for the purpose of this software.
+// the purpose of `rem` is to compensate this.
 let rem x m =
   let tmp = x % m
   if tmp >= 0
@@ -90,6 +91,11 @@ let sample (xs : List<'a>) =
   let i = (new System.Random()).Next(0, xs.Length)
   xs.[i]
 
+// the notes of open strings.
+//    [29; 24; 19; 14; 9; 4] mod 12
+// ~> [5; 0; 7; 2; 9; 4]
+// ~> [F; C; G; D; A; E]
+// ~> (so-called "all fourths" tuning, although I prefer to refer it as 5-regular tuning)
 let baseNoteOf stringIndex =
   [29; 24; 19; 14; 9; 4].[stringIndex]
 
@@ -107,6 +113,7 @@ let play basenameList =
   let _ = p.Start ()
   p
 
+// computes the note name of specific position on a fretboard
 let basenameAt stringIndex fretIndex =
   sprintf "%02d" (baseNoteOf stringIndex + fretIndex)
 
