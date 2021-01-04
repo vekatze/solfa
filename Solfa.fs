@@ -494,11 +494,11 @@ try
     | Note_To_Fret ->
       save "note-to-fret" (NoteToFret.lesson ())
     | White ->
-      save "white" (Chroma.lesson whiteNoteList)
+      save (sprintf "white-%d" solfaSize) (Chroma.lesson whiteNoteList)
     | Black ->
-      save "black" (Chroma.lesson blackNoteList)
+      save (sprintf "black-%d" solfaSize) (Chroma.lesson blackNoteList)
     | Chroma ->
-      save "chroma" (Chroma.lesson (List.append whiteNoteList blackNoteList))
+      save (sprintf "chroma-%d" solfaSize) (Chroma.lesson (List.append whiteNoteList blackNoteList))
     | Staff ->
       save "staff" (Staff.lesson ())
     | Convention  ->
