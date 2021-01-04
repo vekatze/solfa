@@ -30,18 +30,24 @@ let mutable solfaLevel =
 let mutable outputDirPath =
   ""
 
+// the directory of executable (required to load wav files relatively)
 let mutable baseDirPath =
   ""
 
+// 0 = C, 2 = D, 4 = E, etc.
 let whiteNoteList =
   [0; 2; 4; 5; 7; 9; 11]
 
+// 1 = C# = Db, 3 = D# = Eb, etc.
 let blackNoteList =
   [1; 3; 6; 8; 10]
 
+// the `undefined` in Haskell.
 let admit<'a> =
   failwith<'a> "admit"
 
+// the result of `%` can be negative when the `x` in `x % m` is negative,
+// which isn't appropriate for the purpose of this software.
 let rem x m =
   let tmp = x % m
   if tmp >= 0
