@@ -178,7 +178,8 @@ let generateQuestionWith currentIteration info =
     match getInput info.basenameList with
     | Some input when input = info.answerList ->
       eraseLines info.eraseCount
-      pid.WaitForExit ()
+      pid.Kill ()
+      // pid.WaitForExit ()
       let t2 = DateTime.Now
       (t2 - t1).TotalSeconds
     | Some _ ->
